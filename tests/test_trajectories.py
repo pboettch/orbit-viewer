@@ -32,7 +32,7 @@ def mock():
 
             trajectories.intervals_changed.connect(lambda x: self.i_changed.append(x))
             trajectories.trajectory_removed.connect(lambda x: self.t_removed.append(x))
-            trajectories.selection_changed.connect(lambda x: self.s_changed.append(x))
+            trajectories.interval_selection_changed.connect(lambda x: self.s_changed.append(x))
 
             trajectories.loading_error.connect(lambda p, e: self.errors.append((p, e)))
             trajectories.loading_status.connect(lambda p, m: self.status.append((p, m)))
@@ -210,7 +210,7 @@ def test_add_one_traj_3_intervals(qtbot, mock):
 #    assert len(intervals.selected_intervals('test2')) == 1
 #    assert len(mock.s_changed) == 4
 #
-#    intervals.deselect_all()  # emits two selection_changed signals
+#    intervals.deselect_all()  # emits two interval_selection_changed signals
 #    assert mock.s_changed[-2] == 'test'
 #    assert mock.s_changed[-1] == 'test2'
 #    assert len(mock.s_changed) == 6

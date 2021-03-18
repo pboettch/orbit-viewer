@@ -54,8 +54,10 @@ class Timelines(FigureCanvasQTAgg):
 
         # global trajectory model
         trajectories.intervals_changed.connect(self._intervals_changed)
-        trajectories.selection_changed.connect(self._selection_changed)
-        trajectories.trajectory_removed.connect(self._trajectory_removed)
+        trajectories.interval_selection_changed.connect(self._selection_changed)
+
+        trajectories.trajectory_data_changed.connect(self._trajectory_updated)
+        trajectories.trajectory_removed.connect(self._trajectory_updated)
 
         # delayed signal submission
         self._range_changed_timer = QtCore.QTimer(self)
@@ -175,7 +177,7 @@ class Timelines(FigureCanvasQTAgg):
                             factor * old_range[1] + offset)
 
         self.figure.canvas.draw()
-        self._range_changed_timer.start(200)
+        self._range_changed_timer.start(100)
 
     def _clear_timeline(self, timeline: _Timeline):
         for bar in timeline.interval_bars:
@@ -232,7 +234,6 @@ class Timelines(FigureCanvasQTAgg):
         labels = []
 
         for tl in self._timelines.values():
-            print('clearing', tl)
             self._clear_timeline(tl)
             self._clear_timeline_selection(tl)
 
@@ -265,19 +266,18 @@ class Timelines(FigureCanvasQTAgg):
         return None
 
     def _intervals_changed(self, name: str):
-        if name in self._timelines:  # update
+        if name in self._timelines:
             self._redraw_timeline(name)
             self._redraw_selection(name)
             self.figure.canvas.draw()
-        else:  # newly added
-            self._redraw()
+
+    def _trajectory_updated(self, name: str):
+        print('trajectory updated')
+        self._redraw()
 
     def _selection_changed(self, name: str):
         self._redraw_selection(name)
         self.figure.canvas.draw()
-
-    def _trajectory_removed(self, name: str):
-        self._redraw()
 
     def range(self):
         range = self._axes.get_xlim()

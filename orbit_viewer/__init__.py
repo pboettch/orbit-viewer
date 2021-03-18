@@ -4,6 +4,6 @@ __author__ = """Patrick Boettcher"""
 __email__ = 'p@yai.se'
 __version__ = '0.1.0'
 
-from . import _intervals
+from . import _trajectories
 
-intervals = _intervals.Intervals()
+trajectories = _trajectories.Trajectories()

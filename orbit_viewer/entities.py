@@ -2,6 +2,8 @@ from .properties import PropertyHolder, Property
 
 from math import pi
 
+import random
+
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2.Qt3DCore import Qt3DCore
@@ -29,11 +31,14 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
         self._entity = Qt3DCore.QEntity(root)
 
+        color_list = [name for name in QtGui.QColor.colorNames() if 'dark' not in name]
+        color_list.remove('black')
+        color = color_list[random.randint(0, len(color_list) - 1)]
+
         self._name = self.add_property('Name', "Object name", str, name, read_only=True)
         self._visible = self.add_property('Visible', 'Visibility of object in 3DView', bool, True)
         self._enabled = self.add_property('Enabled', 'Object enabled for interval-intersection', bool, True)
-        self._color = self.add_property('Color', 'Diffuse color', QtGui.QColor, QtGui.QColor.fromRgb(0, 255, 0),
-                                        alpha=True)
+        self._color = self.add_property('Color', 'Diffuse color', QtGui.QColor, QtGui.QColor(color), alpha=True)
         self._alpha = self.add_property('Alpha', 'Alpha value for the diffuse color', int, 255, minimum=0, maximum=255)
 
         # Qt3D-part

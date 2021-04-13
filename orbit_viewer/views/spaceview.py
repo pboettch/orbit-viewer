@@ -50,6 +50,7 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
 
         cam_ctrl = Qt3DExtras.QOrbitCameraController(self._scene)
         cam_ctrl.setCamera(camera)
+        cam_ctrl.setLinearSpeed(500.)
 
         # Light follows camera source
         self.light_entity = Qt3DCore.QEntity(camera)

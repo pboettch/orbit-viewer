@@ -47,6 +47,18 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
         self._material.setDiffuse(self._color.value)
         self._entity.addComponent(self._material)
 
+        # trying to solve the "draw-order" problem - taken from
+        # https://forum.qt.io/topic/110219/depth-problem-with-qt3d/4
+        for current_tech in self._material.effect().techniques():
+            for render_pass in current_tech.renderPasses():
+                for render_state in render_pass.renderStates():
+                    if isinstance(render_state, Qt3DRender.QNoDepthMask):
+                        render_pass.removeRenderState(render_state)
+                        depth_test = Qt3DRender.QDepthTest(self._entity)
+                        depth_test.setDepthFunction(Qt3DRender.QDepthTest.Less)
+                        render_pass.addRenderState(depth_test)
+                        break
+
         self._transform = Qt3DCore.QTransform(self._entity)
         self._entity.addComponent(self._transform)
 

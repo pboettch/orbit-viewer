@@ -53,4 +53,3 @@ class PropertyHolder(QtCore.QObject):
                 break
         else:
             raise KeyError('no property with name ' + name)
-

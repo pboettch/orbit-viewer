@@ -29,7 +29,6 @@ class _TrajectoryData:
     selected: List[Tuple[dt.datetime, dt.datetime]] = field(default_factory=list)  # intervals
 
 
-
 class Trajectories(QtCore.QObject):
     """ Model containing all trajectories and intersection/filtering objects """
 

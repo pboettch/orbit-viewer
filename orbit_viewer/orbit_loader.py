@@ -64,7 +64,8 @@ class OrbitLoader(QtCore.QThread):
 
             if var is None:
                 self.status.emit(self._product, 'Error')
-                self.error.emit(self._product, 'OrbitLoader: no data could be retrieved for "{self._product}" in given range')
+                self.error.emit(self._product,
+                                'OrbitLoader: no data could be retrieved for "{self._product}" in given range')
                 return
 
             self._last_range = r

@@ -31,8 +31,9 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
         self._entity = Qt3DCore.QEntity(root)
 
-        color_list = [name for name in QtGui.QColor.colorNames() if 'dark' not in name]
-        color_list.remove('black')
+        color_list = [name for name in QtGui.QColor.colorNames() if 'light' in name]
+        # color_list.remove('black')
+        print(color_list)
         color = color_list[random.randint(0, len(color_list) - 1)]
 
         self._name = self.add_property('Name', "Object name", str, name, read_only=True)
@@ -50,8 +51,11 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
         # trying to solve the "draw-order" problem - taken from
         # https://forum.qt.io/topic/110219/depth-problem-with-qt3d/4
         for current_tech in self._material.effect().techniques():
+            print('current_tech', current_tech)
             for render_pass in current_tech.renderPasses():
+                print('  rend_pass', render_pass)
                 for render_state in render_pass.renderStates():
+                    print('    ', render_state)
                     if isinstance(render_state, Qt3DRender.QNoDepthMask):
                         render_pass.removeRenderState(render_state)
                         depth_test = Qt3DRender.QDepthTest(self._entity)
@@ -93,6 +97,11 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
     def enabled_for_intersecting(self):
         return self._enabled.get()
+
+    def remove_entity_components(self):
+        self._entity.parentEntity().childNodes().remove(self._entity)
+        for c in self._entity.components()[:]:
+            self._entity.removeComponent(c)
 
 
 class Sphere(IntersectionObjectPropertyHolder):
@@ -368,22 +377,39 @@ class Entities(QtCore.QObject):
         self._trajectory_entities = TrajectoryEntities('Trajectories')
         self._model.invisibleRootItem().appendRow(self._trajectory_entities)
 
+        self._model.rowsAboutToBeRemoved.connect(self.rows_about_to_be_removed)
+        self._model.rowsRemoved.connect(self.rows_removed)
+
     def model(self):
         return self._model
 
     def add_intersection(self, item) -> None:
         self._intersection_entities.appendRow(item)
+        self.geometry_changed()
 
         item.geometry_changed.connect(self.geometry_changed)
 
     def intersection_entities_index(self) -> QtCore.QModelIndex:
         return self._intersection_entities.index()
 
+    def rows_about_to_be_removed(self, parent_index: QtCore.QModelIndex, first: int, last: int):
+        parent = self._model.itemFromIndex(parent_index)
+        if parent == self._intersection_entities:
+            index = parent_index.child(first, 0)
+            item = self._model.itemFromIndex(index)
+            item.remove_entity_components()
+
+    def rows_removed(self, parent_index: QtCore.QModelIndex, first: int, last: int):
+        parent = self._model.itemFromIndex(parent_index)
+        if parent == self._intersection_entities:
+            self.geometry_changed()
+
     def add_fix_object(self, item) -> None:
         self._fix_objects_entities.appendRow(item)
 
     def add_trajectory(self, item) -> None:
         self._trajectory_entities.appendRow(item)
+        self.geometry_changed()
 
     def geometry_changed(self) -> None:
         intsct = []
@@ -392,5 +418,5 @@ class Entities(QtCore.QObject):
             if item.enabled_for_intersecting():
                 intsct += [item.to_broni()]
 
-        print(intsct)
+        # print(intsct)
         trajectories.set_intersect_objects(*intsct)

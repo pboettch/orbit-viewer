@@ -109,9 +109,9 @@ class EntitiesWidget(QtWidgets.QWidget):
     def remove_item(self):
         index = self._tv.currentIndex()
         if index.isValid():
-            item = self._entities.model().itemFromIndex(index)
 
             # TODO delete item from entities
             self._tv.model().removeRow(index.row(), index.parent())
             self._tv.selectionModel().setCurrentIndex(index.parent(),
                                                       QtCore.QItemSelectionModel.Select)
+

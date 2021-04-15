@@ -58,8 +58,10 @@ class PropertyLineEditWidget(QtWidgets.QLineEdit):
 
         if prop.type is float:
             valid = QtGui.QDoubleValidator(self)
+            valid.setLocale(QtCore.QLocale.c())
         elif prop.type is int:
             valid = QtGui.QIntValidator(self)
+            valid.setLocale(QtCore.QLocale.c())
         else:
             valid = None
 

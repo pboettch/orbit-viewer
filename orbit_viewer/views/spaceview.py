@@ -44,13 +44,18 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
 
         # Camera
         camera = self.camera()
-        camera.lens().setPerspectiveProjection(65.0, 16.0 / 9.0, 0.1, 1000.0)
-        camera.setPosition(QtGui.QVector3D(0, 100, 0))
-        #camera.setViewCenter(QtGui.QVector3D(1, 0, 0))
 
+        camera.setPosition(QtGui.QVector3D(0, 0, 100))
+        camera.setViewCenter(QtGui.QVector3D(0, 0, .1))
+        # camera.setUpVector(QtGui.QVector3D(0.0, 1.0, 0.0))
+
+        camera.lens().setPerspectiveProjection(35, 1, 1, 1000.0)
         cam_ctrl = Qt3DExtras.QOrbitCameraController(self._scene)
         cam_ctrl.setCamera(camera)
-        cam_ctrl.setLinearSpeed(500.)
+
+        cam_ctrl.setLookSpeed(-135)
+        cam_ctrl.setAcceleration(0)
+        cam_ctrl.setLinearSpeed(-135)
 
         # Light follows camera source
         self.light_entity = Qt3DCore.QEntity(camera)
@@ -64,17 +69,17 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
         self.light_entity.addComponent(self._higher_layer)
 
     def middle_layer(self):
-        return self._middle_layer
+        return self._lower_layer
 
     def lower_layer(self):
         return self._lower_layer
 
     def higher_layer(self):
-        return self._higher_layer
+        return self._lower_layer
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         camera_aspect = e.size().width() / e.size().height()
-        self.camera().lens().setPerspectiveProjection(65.0, camera_aspect, 0.1, 1000.0)
+        self.camera().lens().setAspectRatio(camera_aspect)
 
     def scene(self):
         return self._scene

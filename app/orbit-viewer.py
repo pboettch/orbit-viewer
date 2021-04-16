@@ -11,8 +11,8 @@ from PySide2 import QtGui
 
 from orbit_viewer.views.timeline import Timelines
 from orbit_viewer.views.spaceview import SpaceView
-from orbit_viewer.views.entities import EntitiesWidget, Sphere
-from orbit_viewer.entities import Entities, Trajectory
+from orbit_viewer.views.entities import EntitiesWidget
+from orbit_viewer.entities import Entities, Trajectory, Axis, Sphere
 
 from orbit_viewer import trajectories
 
@@ -45,6 +45,16 @@ class OrbitViewer(QtWidgets.QWidget):
         earth.set('Radius', R_earth.to('Mm').value)
         earth.set('Color', QtGui.QColor.fromRgb(43, 206, 255))
         self.entities.add_fix_object(earth)
+
+        x_axis = Axis('X-axis', QtGui.QVector3D(1, 0, 0), self.view.scene(), self.view.lower_layer(), self)
+        x_axis.set('Color', QtGui.QColor.fromRgb(255, 0, 0))
+        self.entities.add_fix_object(x_axis)
+        y_axis = Axis('Y-axis', QtGui.QVector3D(0, 1, 0), self.view.scene(), self.view.lower_layer(), self)
+        y_axis.set('Color', QtGui.QColor.fromRgb(0, 255, 0))
+        self.entities.add_fix_object(y_axis)
+        z_axis = Axis('Z-axis', QtGui.QVector3D(0, 0, 1), self.view.scene(), self.view.lower_layer(), self)
+        z_axis.set('Color', QtGui.QColor.fromRgb(170, 255, 255))
+        self.entities.add_fix_object(z_axis)
 
         ent_widget = EntitiesWidget(self.entities, self.view, self)
         ent_widget.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)

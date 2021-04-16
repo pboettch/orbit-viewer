@@ -4,6 +4,8 @@ from math import pi
 
 import random
 
+import numpy as np
+
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2.Qt3DCore import Qt3DCore
@@ -274,6 +276,39 @@ class Interval(Qt3DCore.QEntity):
 
     def remove(self):
         self.removeComponent(self.renderer)
+
+
+class Axis(IntersectionObjectPropertyHolder):
+    def __init__(self, name: str, dir: QtGui.QVector3D, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
+        super().__init__(name, root, layer, parent)
+
+        self._material.setAmbient(self._color.get())
+
+        self._dir = dir
+
+        self._min = self.add_property('Min', "Minimum", float, 0)
+        self._max = self.add_property('Max', "Maximum", float, 20)
+
+        self._line_renderer = None
+        self.update()
+
+    def property_value_updated(self, prop: Property):
+        super().property_value_updated(prop)
+
+        if prop.name in ['Min', 'Max']:
+            self.update()
+
+    def update(self):
+        if self._line_renderer:
+            self._entity.removeComponent(self._line_renderer)
+
+        min = self._dir * self._min.get()
+        max = self._dir * self._max.get()
+
+        self._line_renderer = LineRenderer(np.asarray([min.x(), max.x()]),
+                                           np.asarray([min.y(), max.y()]),
+                                           np.asarray([min.z(), max.z()]), 0, self._entity)
+        self._entity.addComponent(self._line_renderer)
 
 
 class Trajectory(IntersectionObjectPropertyHolder):

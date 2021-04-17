@@ -28,17 +28,13 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
         camera_selector = Qt3DRender.QCameraSelector(viewport)
         camera_selector.setCamera(self.camera())
 
-        self._lower_layer = Qt3DRender.QLayer()
-        layer_filter = Qt3DRender.QLayerFilter(camera_selector)
-        layer_filter.addLayer(self._lower_layer)
-
-        self._middle_layer = Qt3DRender.QLayer()
-        layer_filter = Qt3DRender.QLayerFilter(camera_selector)
-        layer_filter.addLayer(self._middle_layer)
-
-        self._higher_layer = Qt3DRender.QLayer()
-        layer_filter = Qt3DRender.QLayerFilter(camera_selector)
-        layer_filter.addLayer(self._higher_layer)
+        self._alpha_layers = []
+        for _ in range(0, 256):
+            layer = Qt3DRender.QLayer()
+            layer_filter = Qt3DRender.QLayerFilter(camera_selector)
+            layer_filter.addLayer(layer)
+            self._alpha_layers += [layer]
+        self._alpha_layers = self._alpha_layers[::-1]
 
         self.setActiveFrameGraph(render_surface_selector)
 
@@ -63,19 +59,13 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
         light.setColor("white")
         light.setIntensity(1)
         self.light_entity.addComponent(light)
+
         # has to be added all layers
-        self.light_entity.addComponent(self._middle_layer)
-        self.light_entity.addComponent(self._lower_layer)
-        self.light_entity.addComponent(self._higher_layer)
+        for layer in self._alpha_layers:
+            self.light_entity.addComponent(layer)
 
-    def middle_layer(self):
-        return self._lower_layer
-
-    def lower_layer(self):
-        return self._lower_layer
-
-    def higher_layer(self):
-        return self._lower_layer
+    def alpha_layers(self, i: int) -> Qt3DRender.QLayer:
+        return self._alpha_layers[i]
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         camera_aspect = e.size().width() / e.size().height()

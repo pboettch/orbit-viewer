@@ -41,18 +41,18 @@ class OrbitViewer(QtWidgets.QWidget):
 
         self.entities = Entities(self)
 
-        earth = Sphere('Earth', self.view.scene(), self.view.middle_layer(), self)
+        earth = Sphere('Earth', self.view.scene(), self.view.alpha_layers, self)
         earth.set('Radius', R_earth.to('Mm').value)
         earth.set('Color', QtGui.QColor.fromRgb(43, 206, 255))
         self.entities.add_fix_object(earth)
 
-        x_axis = Axis('X-axis', QtGui.QVector3D(1, 0, 0), self.view.scene(), self.view.lower_layer(), self)
+        x_axis = Axis('X-axis', QtGui.QVector3D(1, 0, 0), self.view.scene(), self.view.alpha_layers, self)
         x_axis.set('Color', QtGui.QColor.fromRgb(255, 0, 0))
         self.entities.add_fix_object(x_axis)
-        y_axis = Axis('Y-axis', QtGui.QVector3D(0, 1, 0), self.view.scene(), self.view.lower_layer(), self)
+        y_axis = Axis('Y-axis', QtGui.QVector3D(0, 1, 0), self.view.scene(), self.view.alpha_layers, self)
         y_axis.set('Color', QtGui.QColor.fromRgb(0, 255, 0))
         self.entities.add_fix_object(y_axis)
-        z_axis = Axis('Z-axis', QtGui.QVector3D(0, 0, 1), self.view.scene(), self.view.lower_layer(), self)
+        z_axis = Axis('Z-axis', QtGui.QVector3D(0, 0, 1), self.view.scene(), self.view.alpha_layers, self)
         z_axis.set('Color', QtGui.QColor.fromRgb(170, 255, 255))
         self.entities.add_fix_object(z_axis)
 
@@ -66,7 +66,10 @@ class OrbitViewer(QtWidgets.QWidget):
 
     def set_trajectories(self, trajs: List[str]):
         for product in trajs:
-            self.entities.add_trajectory(Trajectory(product, self.view.scene(), self.view.lower_layer(), self))
+            self.entities.add_trajectory(Trajectory(product,
+                                                    self.view.scene(),
+                                                    self.view.alpha_layers,
+                                                    self))
 
 
 if __name__ == "__main__":

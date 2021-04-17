@@ -6,6 +6,8 @@ import random
 
 import numpy as np
 
+from typing import Callable
+
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2.Qt3DCore import Qt3DCore
@@ -27,7 +29,8 @@ import broni.shapes.callback
 class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
     geometry_changed = QtCore.Signal()
 
-    def __init__(self, name: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
+    def __init__(self, name: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
         QtGui.QStandardItem.__init__(self, name)
         PropertyHolder.__init__(self, parent)
 
@@ -35,7 +38,6 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
         color_list = [name for name in QtGui.QColor.colorNames() if 'light' in name]
         # color_list.remove('black')
-        print(color_list)
         color = color_list[random.randint(0, len(color_list) - 1)]
 
         self._name = self.add_property('Name', "Object name", str, name, read_only=True)
@@ -53,11 +55,11 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
         # trying to solve the "draw-order" problem - taken from
         # https://forum.qt.io/topic/110219/depth-problem-with-qt3d/4
         for current_tech in self._material.effect().techniques():
-            print('current_tech', current_tech)
+            #print('current_tech', current_tech)
             for render_pass in current_tech.renderPasses():
-                print('  rend_pass', render_pass)
+                #print('  rend_pass', render_pass)
                 for render_state in render_pass.renderStates():
-                    print('    ', render_state)
+                    #print('    ', render_state)
                     if isinstance(render_state, Qt3DRender.QNoDepthMask):
                         render_pass.removeRenderState(render_state)
                         depth_test = Qt3DRender.QDepthTest(self._entity)
@@ -67,8 +69,10 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
         self._transform = Qt3DCore.QTransform(self._entity)
         self._entity.addComponent(self._transform)
+        self._alpha_layers = alpha_layers
 
-        self._entity.addComponent(layer)
+        self._current_layer = alpha_layers(self._alpha.get())
+        self._entity.addComponent(self._current_layer)
 
         self.property_has_changed.connect(self.property_value_updated)
 
@@ -78,8 +82,15 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
             self._material.setDiffuse(prop.value)
         elif prop.name == 'Alpha':
             color = self._color.get()
-            color.setAlpha(self._alpha.get())
+            color.setAlpha(prop.get())
             self._color.set(color)
+
+            new_layer = self._alpha_layers(prop.get())
+            if new_layer != self._current_layer:
+                self._entity.removeComponent(self._current_layer)
+                self._entity.addComponent(new_layer)
+                self._current_layer = new_layer
+
         elif prop.name == 'Visible':
             if prop.value:
                 self._entity.addComponent(self._material)
@@ -107,8 +118,9 @@ class IntersectionObjectPropertyHolder(QtGui.QStandardItem, PropertyHolder):
 
 
 class Sphere(IntersectionObjectPropertyHolder):
-    def __init__(self, name: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(name, root, layer, parent)
+    def __init__(self, name: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
+        super().__init__(name, root, alpha_layers, parent)
 
         self._mesh = Qt3DExtras.QSphereMesh(self._entity)
         self._entity.addComponent(self._mesh)
@@ -137,8 +149,9 @@ class Sphere(IntersectionObjectPropertyHolder):
 
 
 class Cuboid(IntersectionObjectPropertyHolder):
-    def __init__(self, name: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(name, root, layer, parent)
+    def __init__(self, name: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
+        super().__init__(name, root, alpha_layers, parent)
 
         self._mesh = Qt3DExtras.QCuboidMesh(self._entity)
         # self._mesh.setPrimitiveType(Qt3DRender.QGeometryRenderer.LineStrip)
@@ -180,8 +193,9 @@ class Cuboid(IntersectionObjectPropertyHolder):
 
 
 class SphericalBoundary(IntersectionObjectPropertyHolder):
-    def __init__(self, name: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(name, root, layer, parent)
+    def __init__(self, name: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
+        super().__init__(name, root, alpha_layers, parent)
 
         # models = []
         # for name in dir(space.models.planetary):
@@ -242,8 +256,9 @@ class SphericalBoundary(IntersectionObjectPropertyHolder):
 
 
 class Sheath(IntersectionObjectPropertyHolder):
-    def __init__(self, name: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(name, root, layer, parent)
+    def __init__(self, name: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
+        super().__init__(name, root, alpha_layers, parent)
 
         self._model = self.add_property('Model', 'Underlying model for the sheath', ['one', 'two'], 'one')
         self._inner = self.add_property('Inner', "Inner margin", float, 0, minumum=0)
@@ -279,8 +294,9 @@ class Interval(Qt3DCore.QEntity):
 
 
 class Axis(IntersectionObjectPropertyHolder):
-    def __init__(self, name: str, dir: QtGui.QVector3D, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(name, root, layer, parent)
+    def __init__(self, name: str, dir: QtGui.QVector3D, root: Qt3DCore.QEntity,
+                 alpha_layers: Callable[[int], Qt3DRender.QLayer], parent=None):
+        super().__init__(name, root, alpha_layers, parent)
 
         self._material.setAmbient(self._color.get())
 
@@ -312,13 +328,13 @@ class Axis(IntersectionObjectPropertyHolder):
 
 
 class Trajectory(IntersectionObjectPropertyHolder):
-    def __init__(self, product: str, root: Qt3DCore.QEntity, layer: Qt3DRender.QLayer, parent=None):
-        super().__init__(product, root, layer, parent)
+    def __init__(self, product: str, root: Qt3DCore.QEntity, alpha_layers: Callable[[int], Qt3DRender.QLayer],
+                 parent=None):
+        super().__init__(product, root, alpha_layers, parent)
 
         self._product = product
         self._line_renderer = None
         self._intervals = {}
-        self._layer = layer
 
         self._material.setAmbient(self._color.get())
 
@@ -361,7 +377,7 @@ class Trajectory(IntersectionObjectPropertyHolder):
         for iv in set(self._intervals.keys()) ^ set(intervals):
             print('add', iv)
             spwc = trajectories.interval_coords(self._product, iv)
-            self._intervals[iv] = Interval(self._entity, self._layer,
+            self._intervals[iv] = Interval(self._entity, self._alpha_layers(255),
                                            spwc[:, 0], spwc[:, 1], spwc[:, 2])
             if iv in trajectories.selected_intervals(self._product):
                 self._intervals[iv].set_color('yellow')

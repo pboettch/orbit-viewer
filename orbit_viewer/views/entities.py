@@ -35,21 +35,21 @@ class EntitiesWidget(QtWidgets.QWidget):
 
         submenu = menu.addMenu('Intersection')
 
-        for cl, name, layer in [(Sphere, 'Sphere', view.middle_layer()),
-                                (Cuboid, 'Cuboid', view.middle_layer()),
-                                (SphericalBoundary, 'SphericalBoundary', view.higher_layer()),
-                                (Sheath, 'Sheath', view.higher_layer())]:
+        for cl, name in [(Sphere, 'Sphere'),
+                                (Cuboid, 'Cuboid'),
+                                (SphericalBoundary, 'SphericalBoundary'),
+                                (Sheath, 'Sheath')]:
             action = QtWidgets.QAction(name, self)
             action.triggered.connect(
                 functools.partial(
-                    lambda _class, _name, _layer: self._entities.add_intersection(
+                    lambda _class, _name, _layers: self._entities.add_intersection(
                         _class('New ' + _name,
                                view.scene(),
-                               _layer,
+                               _layers,
                                self)),
                     cl,
                     name,
-                    layer))
+                    view.alpha_layers))
 
             submenu.addAction(action)
 

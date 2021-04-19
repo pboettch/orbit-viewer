@@ -29,7 +29,7 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
         camera_selector.setCamera(self.camera())
 
         self._alpha_layers = []
-        for _ in range(0, 256):
+        for _ in range(256):
             layer = Qt3DRender.QLayer()
             layer_filter = Qt3DRender.QLayerFilter(camera_selector)
             layer_filter.addLayer(layer)
@@ -45,7 +45,7 @@ class SpaceView(Qt3DExtras.Qt3DWindow):
         camera.setViewCenter(QtGui.QVector3D(0, 0, .1))
         # camera.setUpVector(QtGui.QVector3D(0.0, 1.0, 0.0))
 
-        camera.lens().setPerspectiveProjection(35, 1, 1, 1000.0)
+        camera.lens().setPerspectiveProjection(35, 1, 1, 10000.0)
         cam_ctrl = Qt3DExtras.QOrbitCameraController(self._scene)
         cam_ctrl.setCamera(camera)
 

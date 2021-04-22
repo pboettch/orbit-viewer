@@ -107,7 +107,7 @@ class Trajectories(QtCore.QObject):
 
         # workaround - when data comes from the cache, it doesn't have the unit set
         unit = km
-        if type(sv.data) is Quantity:
+        if type(sv.values) is Quantity:
             unit = 1
 
         self._data[product].spwc = sv

@@ -200,10 +200,16 @@ class Timelines(FigureCanvasQTAgg):
         timeline = self._timelines[name]
 
         self._clear_timeline(timeline)
-
-        line_height = 0.5
-
+        line_height = 0.2
         whole_range = self._axes.get_xlim()
+        line = self._axes.axline(xy1=(whole_range[0], timeline.y_offset + timeline.y_height / 2 - line_height / 2),
+                                 slope=0,
+                                 color='grey',
+                                 linestyle='dotted')
+        timeline.interval_bars.append(line)
+
+        line_height = 1
+
         barh = self._axes.broken_barh([(whole_range[0], whole_range[1] - whole_range[0])],
                                       (timeline.y_offset + timeline.y_height / 2 - line_height / 2, line_height),
                                       facecolors=timeline.color)

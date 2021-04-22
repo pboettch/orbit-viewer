@@ -174,8 +174,14 @@ class Timelines(FigureCanvasQTAgg):
         center_val = event.xdata
         offset = center_val * (1 - factor)
 
-        self._axes.set_xlim(factor * old_range[0] + offset,
-                            factor * old_range[1] + offset)
+        lower = factor * old_range[0] + offset
+        upper = factor * old_range[1] + offset
+
+        if upper - lower > 90:
+            print('not zooming out more than 90 days')
+            return
+
+        self._axes.set_xlim(lower, upper)
 
         self.figure.canvas.draw()
         self._range_changed_timer.start(100)
